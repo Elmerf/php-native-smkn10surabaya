@@ -17,29 +17,36 @@ if (isset($_POST['btn_simpanmateri'])) {
         unlink($target_file);
       }
 
-      $hapus = mysqli_query($koneksi, "UPDATE filepdf set namafile = '' WHERE id_file = '$_POST[id]'");
+      $filename = $_FILES["namafile"]["name"];
+      $target_file = $target_dir . basename($_FILES["namafile"]["name"]);
 
-      // JIKA HAPUS BERHASIL BARU EDIT
-      if ($hapus) {
-        $filename = $_FILES["namafile"]["name"];
-        $target_file = $target_dir . basename($_FILES["namafile"]["name"]);
-        move_uploaded_file($_FILES["namafile"]["tmp_name"], $target_file);
-
-        $edit = mysqli_query($koneksi, "UPDATE filepdf SET namafile = '$filename', jenismateri = '$_POST[jenismateri]' WHERE id_file = '$_POST[id]'");
-
-        //UJI JIKA EDIT DATA SUKSES
-        if ($edit) {
-          echo "<script>alert('File berhasil diubah'); document.location='materiguru.php'</script>";
-        } else {
-          echo "<script>alert('File tidak berhasil diubah'); document.location='materiguru.php'</script>";
-        }
+      if (file_exists($target_file)) {
+        $filename = time() . '_' . $_FILES["namafile"]["name"];
+        $target_file = $target_dir . basename($filename);
       }
+      move_uploaded_file($_FILES["namafile"]["tmp_name"], $target_file);
+
+      $edit = mysqli_query($koneksi, "UPDATE filepdf SET namafile = '$filename', jenismateri = '$_POST[jenismateri]' WHERE id_file = '$_POST[id]'");
+
+      //UJI JIKA EDIT DATA SUKSES
+      if ($edit) {
+        echo "<script>alert('File berhasil diubah'); document.location='materiguru.php'</script>";
+      } else {
+        echo "<script>alert('File tidak berhasil diubah'); document.location='materiguru.php'</script>";
+      }
+      // $hapus = mysqli_query($koneksi, "UPDATE filepdf set namafile = '' WHERE id_file = '$_POST[id]'");
     }
   } else {
     $target_dir = "filepdf/";
     $target_file = $target_dir . basename($_FILES["namafile"]["name"]);
     //JIKA BUKAN EDIT DATA AKAN DISIMPAN BARU
     $filename = $_FILES["namafile"]["name"];
+
+    if (file_exists($target_file)) {
+      $filename = time() . '_' . $_FILES["namafile"]["name"];
+      $target_file = $target_dir . $filename;
+    }
+
     move_uploaded_file($_FILES["namafile"]["tmp_name"], $target_file);
 
     $tambah = mysqli_query($koneksi, "INSERT INTO filepdf (namafile, jenismateri) VALUE ('$filename','$_POST[jenismateri]')");
